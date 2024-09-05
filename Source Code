@@ -1,0 +1,130 @@
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Random;
+import java.util.Scanner;
+
+class Ambulance {
+    private int id;
+    private int location;
+    private String status;
+    private int estimatedArrival;
+
+    public Ambulance(int id, int location) {
+        this.id = id;
+        this.location = location;
+        this.status = "available";
+    }
+
+    public void assignToCase(int caseLocation) {
+        this.status = "dispatched";
+        this.estimatedArrival = calculateArrivalTime(caseLocation);
+        System.out.println("Ambulance " + id + " dispatched to location " + caseLocation 
+            + ". Estimated arrival time: " + estimatedArrival + " minutes.");
+    }
+
+    private int calculateArrivalTime(int caseLocation) {
+        Random rand = new Random();
+        int distanceFactor = Math.abs(this.location - caseLocation);
+        return rand.nextInt(21) + 10 + distanceFactor;  // Arrival time between 10 and 30 minutes + distance factor
+    }
+
+    public void arrivedAtCase() {
+        System.out.println("Ambulance " + id + " has arrived at the location.");
+        this.status = "arrived";
+    }
+
+    public String getStatus() {
+        return status;
+    }
+
+    public int getLocation() {
+        return location;
+    }
+
+    public int getId() {
+        return id;
+    }
+}
+
+class AmbulanceBooth {
+    private List<Ambulance> ambulances;
+
+    public AmbulanceBooth() {
+        Random rand = new Random();
+        ambulances = new ArrayList<>();
+        ambulances.add(new Ambulance(1, rand.nextInt(10) + 1));
+        ambulances.add(new Ambulance(2, rand.nextInt(10) + 1));
+        ambulances.add(new Ambulance(3, rand.nextInt(10) + 1));
+    }
+
+    public void requestAmbulance(int caseLocation) {
+        Ambulance nearestAmbulance = null;
+        for (Ambulance amb : ambulances) {
+            if (amb.getStatus().equals("available")) {
+                if (nearestAmbulance == null || 
+                    Math.abs(amb.getLocation() - caseLocation) < Math.abs(nearestAmbulance.getLocation() - caseLocation)) {
+                    nearestAmbulance = amb;
+                }
+            }
+        }
+
+        if (nearestAmbulance != null) {
+            nearestAmbulance.assignToCase(caseLocation);
+        } else {
+            System.out.println("Sorry, no ambulances are available at the moment.");
+        }
+    }
+
+    public void ambulanceStatus() {
+        for (Ambulance amb : ambulances) {
+            System.out.println("Ambulance " + amb.getId() + ": Status = " + amb.getStatus() 
+                + ", Location = " + amb.getLocation());
+        }
+    }
+}
+
+public class AmbulanceDispatchSystem {
+    private static int simulateUserRequest() {
+        Random rand = new Random();
+        int caseLocation = rand.nextInt(10) + 1;
+        System.out.println("Emergency at location " + caseLocation + ". Requesting ambulance...");
+        return caseLocation;
+    }
+
+    public static void main(String[] args) {
+        Scanner scanner = new Scanner(System.in);
+        AmbulanceBooth booth = new AmbulanceBooth();
+        
+        while (true) {
+            System.out.println("\n--- Ambulance Booth System ---");
+            System.out.println("1. Request an ambulance");
+            System.out.println("2. Check ambulance status");
+            System.out.println("3. Exit");
+
+            System.out.print("Enter your choice: ");
+            int choice = scanner.nextInt();
+
+            switch (choice) {
+                case 1:
+                    int caseLocation = simulateUserRequest();
+                    booth.requestAmbulance(caseLocation);
+                    break;
+                case 2:
+                    booth.ambulanceStatus();
+                    break;
+                case 3:
+                    System.out.println("Exiting the system. Stay safe!");
+                    scanner.close();
+                    return;
+                default:
+                    System.out.println("Invalid choice. Please try again.");
+            }
+
+            try {
+                Thread.sleep(2000); // 2-second delay to simulate real-world processing
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        }
+    }
+}
